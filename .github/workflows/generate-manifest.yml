@@ -1,0 +1,38 @@
+# Copiar este archivo a: tcraft-mods-list/.github/workflows/generate-manifest.yml
+
+name: Auto-generate manifest
+
+on:
+  push:
+    paths:
+      - 'modList/mods/**'
+      - 'modList/configs/**'
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Generate manifest
+        run: python3 scripts/generate-manifest.py
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet modList/manifest.json || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add modList/manifest.json
+          git commit -m "Auto-update manifest.json"
+          git push

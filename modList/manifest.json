@@ -1,0 +1,17 @@
+{
+  "$schema": "./manifest.schema.json",
+  "modpack": {
+    "name": "Your Modpack Name",
+    "version": "1.0.0",
+    "description": "Description of your modpack",
+    "server_ip": "play.yourserver.net",
+    "minecraft_version": "1.21.6"
+  },
+  "repository": {
+    "base_url": "https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/modList",
+    "mods_path": "mods/",
+    "configs_path": "configs/"
+  },
+  "mods": [],
+  "configs": []
+}
