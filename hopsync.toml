@@ -1,0 +1,286 @@
+# HopSync modpack definition. This is the only file you need to edit.
+# Docs: README.md. Validate locally with: python3 scripts/hopsync.py build
+
+[pack]
+name = "HopSync Demo"
+version = "1.0.0"
+description = ""
+minecraft = "1.21.1"
+loader = "neoforge"
+# server_ip = "play.example.net"
+
+[configs]
+# Files under configs/ are installed only if the player does not have them yet.
+# List here the ones the server must enforce (relative to configs/).
+overwrite = []
+
+# Mods hosted on Modrinth. Jars that are not on Modrinth go into local-mods/.
+
+[[mods]]
+modrinth = "almanac"
+version = "1.5.0"
+
+[[mods]]
+modrinth = "amendments"
+version = "1.21-2.0.13-neoforge"
+
+[[mods]]
+modrinth = "architectury-api"
+version = "13.0.8+neoforge"
+
+[[mods]]
+modrinth = "aures-sea-dwellers"
+version = "1.0.0"
+
+[[mods]]
+modrinth = "beautified-chat-server"
+version = "1.21.1-3.1-fabric+forge+neo"
+
+[[mods]]
+modrinth = "better-archeology"
+version = "XlJUda6G"
+
+[[mods]]
+modrinth = "borninchaos"
+version = "1.7.4"
+
+[[mods]]
+modrinth = "collective"
+version = "1.21.1-8.13-fabric+forge+neo"
+
+[[mods]]
+modrinth = "create"
+version = "mc1.21.1-6.0.8"
+
+[[mods]]
+modrinth = "create-blaze-burner-fuels"
+version = "1.0.1"
+
+[[mods]]
+modrinth = "create-copper-zinc"
+version = "1.6.5"
+
+[[mods]]
+modrinth = "create-ironworks"
+version = "4.0.1"
+
+[[mods]]
+modrinth = "create-more-additions"
+version = "1.6.5"
+
+[[mods]]
+modrinth = "create-more-automation"
+version = "0.5.2"
+
+[[mods]]
+modrinth = "create-stone-generators"
+version = "1.2.5"
+
+[[mods]]
+modrinth = "create-ultimate-factory"
+version = "2.2.2"
+
+[[mods]]
+modrinth = "create-winery"
+version = "1.9.0"
+
+[[mods]]
+modrinth = "createaddition"
+version = "neoforge-1.21.1-1.5.9"
+
+[[mods]]
+modrinth = "cristel-lib"
+version = "3.0.2.1"
+
+[[mods]]
+modrinth = "curios"
+version = "9.5.1+1.21.1"
+
+[[mods]]
+modrinth = "dungeons-and-taverns"
+version = "v4.4.4+mod"
+
+[[mods]]
+modrinth = "enders-delight"
+version = "1.1.0"
+
+[[mods]]
+modrinth = "entityculling"
+version = "1.9.4"
+
+[[mods]]
+modrinth = "farmers-delight"
+version = "1.21.1-1.2.9"
+
+[[mods]]
+modrinth = "ferrite-core"
+version = "7.0.2-neoforge"
+
+[[mods]]
+modrinth = "friends-and-foes-forge"
+version = "neoforge-4.0.18+mc1.21.1"
+
+[[mods]]
+modrinth = "geckolib"
+version = "4.8.2"
+
+[[mods]]
+modrinth = "geophilic"
+version = "3.4.5"
+
+[[mods]]
+modrinth = "hardcore-torches"
+version = "1.21.0-2.1"
+
+[[mods]]
+modrinth = "iceberg"
+version = "1.3.2"
+
+[[mods]]
+modrinth = "immediatelyfast"
+version = "1.6.9+1.21.1-neoforge"
+
+[[mods]]
+modrinth = "immersive-melodies"
+version = "0.6.2+1.21.1"
+
+[[mods]]
+modrinth = "iris"
+version = "1.8.12+1.21.1-neoforge"
+
+[[mods]]
+modrinth = "jei"
+version = "19.25.1.332"
+
+[[mods]]
+modrinth = "legendary-tooltips"
+version = "1.5.5"
+
+[[mods]]
+modrinth = "lithium"
+version = "mc1.21.1-0.15.1-neoforge"
+
+[[mods]]
+modrinth = "lmd"
+version = "1.5.0"
+
+[[mods]]
+modrinth = "medieval-buildings-end-edition"
+version = "1.0.4"
+
+[[mods]]
+modrinth = "mes-moogs-end-structures"
+version = "2.0.1"
+
+[[mods]]
+modrinth = "modernfix"
+version = "5.25.1+mc1.21.1"
+
+[[mods]]
+modrinth = "moogs-structure-lib"
+version = "1.1.0-1.21-1.21.1"
+
+[[mods]]
+modrinth = "moogs-voyager-structures"
+version = "5.0.3"
+
+[[mods]]
+modrinth = "moonlight"
+version = "FW12WzQ3"
+
+[[mods]]
+modrinth = "nvidium"
+version = "0.3.1"
+loaders = ["fabric", "quilt"]
+
+[[mods]]
+modrinth = "prism-lib"
+version = "1.0.11"
+
+[[mods]]
+modrinth = "rapid-leaf-decay"
+version = "1.21.1-3.0.0"
+
+[[mods]]
+modrinth = "repurposed-structures-forge"
+version = "7.5.17+1.21.1-neoforge"
+
+[[mods]]
+modrinth = "resourceful-config"
+version = "3.0.11"
+
+[[mods]]
+modrinth = "resourceful-lib"
+version = "3.0.12"
+
+[[mods]]
+modrinth = "ribbits"
+version = "4.1.6"
+
+[[mods]]
+modrinth = "sodium"
+version = "mc1.21.1-0.6.13-neoforge"
+
+[[mods]]
+modrinth = "sodium-dynamic-lights"
+version = "neoforge-1.21.1-1.0.10"
+
+[[mods]]
+modrinth = "sodium-extras"
+version = "neoforge-1.21.1-1.0.8"
+
+[[mods]]
+modrinth = "spice-of-life-valheim-reforged"
+version = "1.1.3"
+
+[[mods]]
+modrinth = "stellarity"
+version = "3.0.6.1+mod"
+
+[[mods]]
+modrinth = "structory"
+version = "1.3.12"
+
+[[mods]]
+modrinth = "structory-towers"
+version = "1.0.14"
+
+[[mods]]
+modrinth = "supplementaries"
+version = "1.21-3.5.14-neoforge"
+
+[[mods]]
+modrinth = "terralith"
+version = "2.5.8"
+
+[[mods]]
+modrinth = "towns-and-towers"
+version = "1.13.7"
+
+[[mods]]
+modrinth = "valheim-delight"
+version = "1.0.0"
+
+[[mods]]
+modrinth = "xaeros-world-map"
+version = "1.39.12_NeoForge_1.21"
+
+[[mods]]
+modrinth = "yacl"
+version = "3.8.1+1.21.1-neoforge"
+
+[[mods]]
+modrinth = "yungs-api"
+version = "1.21.1-NeoForge-5.1.6"
+
+[[mods]]
+modrinth = "yungs-better-caves"
+version = "1.21.1-NeoForge-3.1.4"
+
+[[mods]]
+modrinth = "yungs-better-nether-fortresses"
+version = "1.21.1-NeoForge-3.1.5"
+
+[[mods]]
+modrinth = "yungs-cave-biomes"
+version = "1.21.1-NeoForge-3.1.1"

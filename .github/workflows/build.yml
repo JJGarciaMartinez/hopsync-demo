@@ -1,0 +1,59 @@
+name: Build manifest
+
+# Pull requests and pushes to other branches only validate the pack.
+# Pushes to main publish manifest.json and the hosted files to the `hopsync` release.
+on:
+  push:
+    paths:
+      - "hopsync.toml"
+      - "local-mods/**"
+      - "configs/**"
+      - "scripts/hopsync.py"
+      - "schema/**"
+      - ".github/workflows/build.yml"
+  pull_request:
+    paths:
+      - "hopsync.toml"
+      - "local-mods/**"
+      - "configs/**"
+      - "scripts/hopsync.py"
+      - "schema/**"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-manifest-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PUBLISH: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Build manifest
+        run: python scripts/hopsync.py build
+
+      - name: Validate against schema
+        run: pipx run check-jsonschema --schemafile schema/manifest.schema.json manifest.json
+
+      - name: Publish to release
+        if: env.PUBLISH == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/hopsync.py build --upload
+
+      - name: Keep manifest as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: manifest
+          path: manifest.json

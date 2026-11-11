@@ -1,0 +1,57 @@
+name: Check mod updates
+
+# Opens (or refreshes) a pull request that bumps pinned Modrinth mods.
+# The PR targets the repository variable HOPSYNC_UPDATES_BASE, or the default branch.
+# Requires Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      BASE: ${{ vars.HOPSYNC_UPDATES_BASE || github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.BASE }}
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Bump pinned versions
+        run: python scripts/hopsync.py update --summary "$RUNNER_TEMP/summary.md"
+
+      - name: Prepare PR body
+        id: body
+        run: |
+          if [ -f "$RUNNER_TEMP/summary.md" ]; then
+            {
+              echo 'text<<EOF'
+              echo 'Newer compatible versions found on Modrinth.'
+              echo
+              cat "$RUNNER_TEMP/summary.md"
+              echo
+              echo 'Test the pack before merging. Remember to bump `[pack] version`.'
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open pull request
+        if: steps.body.outputs.text != ''
+        uses: peter-evans/create-pull-request@v8
+        with:
+          base: ${{ env.BASE }}
+          branch: hopsync/mod-updates
+          commit-message: "chore(mods): bump mod versions"
+          title: "chore(mods): bump mod versions"
+          body: ${{ steps.body.outputs.text }}
+          add-paths: hopsync.toml
+          delete-branch: true
