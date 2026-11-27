@@ -421,10 +421,18 @@ def upload(hosted: list[HostedFile], tag: str) -> None:
         manifest_copy = Path(tmp) / MANIFEST_FILE.name
         shutil.copyfile(MANIFEST_FILE, manifest_copy)
         print(f"Uploading {len(pending)} new file(s) and manifest.json to release '{tag}'")
-        # Hosted assets are content-addressed, so only manifest.json is ever replaced.
+        # Hosted assets are content-addressed, so only manifest.json is ever replaced; unused ones are pruned below.
         for i in range(0, len(pending), 20):
             subprocess.run(["gh", "release", "upload", tag, *pending[i:i + 20]], check=True)
         subprocess.run(["gh", "release", "upload", tag, str(manifest_copy), "--clobber"], check=True)
+
+        # Deleted only after the new manifest is up, so a player never reads a manifest whose files are gone.
+        wanted = {f.asset for f in hosted} | {MANIFEST_FILE.name}
+        stale = sorted(existing - wanted)
+        if stale:
+            print(f"Deleting {len(stale)} file(s) the pack no longer has from release '{tag}'")
+        for name in stale:
+            subprocess.run(["gh", "release", "delete-asset", tag, name, "--yes"], check=True)
 
 
 def cmd_build(args) -> int:
