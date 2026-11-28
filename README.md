@@ -36,6 +36,7 @@ Modrinth jars yourself.
 | `hopsync.toml` | you | Pack metadata and the list of Modrinth mods |
 | `local-mods/` | you | Jars that are not on Modrinth (dropped in as files) |
 | `configs/` | you | Files installed into the player's `config/` folder |
+| `game-files/` | you | Optional game-root files (`options.txt`, `optionsshaders.txt`) |
 | `scripts/hopsync.py` | — | The tool: `build`, `add`, `update`, `import` |
 | `schema/manifest.schema.json` | — | Schema of the generated manifest |
 | `.github/workflows/build.yml` | — | Validates on PRs, publishes on pushes to `main` |
@@ -72,8 +73,10 @@ server_ip = "play.example.net"  # optional
 
 [configs]
 # Files under configs/ are installed only if the player does not have them yet.
-# List the ones the server must enforce (paths relative to configs/).
-overwrite = ["mymod-common.toml"]
+# Rules list units relative to configs/: a top-level folder with a trailing slash
+# ("jei/", every file under it) or a file directly in configs/.
+overwrite = ["mymod-common.toml"]   # always replace the player's copy
+optional = ["jei/"]                 # the player chooses whether to install it
 
 [[mods]]
 modrinth = "sodium"             # the slug from modrinth.com/mod/<slug>
@@ -98,12 +101,35 @@ same number, the build asks you to pin the Modrinth version id instead (e.g. `"X
 | Update a mod | Change its `version`, or merge the weekly "bump mod versions" PR |
 | Remove a mod | Delete its `[[mods]]` block |
 | Add a mod that is not on Modrinth | Drop the jar into `local-mods/` |
-| Add or change a config | Put the file under `configs/` |
+| Add or change a config | Put the file under `configs/` (see [Configs](#configs)) |
+| Offer `options.txt` | Put it in `game-files/` (see [Configs](#configs)) |
 | Check everything locally | `python3 scripts/hopsync.py build` (writes `manifest.json`, uploads nothing) |
 
 Bump `[pack] version` when you release a change to players.
 
 Redistribution: jars in `local-mods/` are re-hosted by you. Check each mod's license allows it.
+
+## Configs
+
+Every file under `configs/` has one of three modes, set per unit in `[configs]`. A unit is a
+top-level folder written with a trailing slash (`"jei/"`, every file under it, recursively) or a
+file directly in `configs/` (`"sodium-options.json"`). A file nested deeper belongs to its
+top-level folder's unit.
+
+| Mode | How | Behavior |
+|------|-----|----------|
+| Install if missing | Not listed (default) | Installed only if the player does not have the file |
+| Always replace | `overwrite = [...]` | The player's copy is replaced on every sync |
+| Optional | `optional = [...]` | The player chooses whether to install it |
+
+A unit in both lists is a build error, and so is a unit that does not exist in `configs/`.
+
+`game-files/` holds files for the game root (next to `mods/`, not inside `config/`). Every file
+there is optional by definition and needs no toml key. Only these names are allowed, directly in
+the folder: `options.txt`, `optionsshaders.txt`.
+
+The build also rejects `.jar`, `.exe`, `.dll`, `.so`, `.dylib`, `.sh` and `.bat` files in
+`configs/` and `game-files/`, and any file over 5 MB.
 
 ## Manifest format
 
@@ -120,10 +146,13 @@ See `schema/manifest.schema.json`. Abridged:
       "url": "https://cdn.modrinth.com/...", "sha512": "...", "size": 25234, "source": "modrinth" }
   ],
   "configs": [
-    { "path": "fabric_loader_dependencies.json", "url": "https://github.com/...",
-      "sha512": "...", "size": 137, "overwrite": false }
+    { "path": "fabric_loader_dependencies.json", "root": "config", "url": "https://github.com/...",
+      "sha512": "...", "size": 137, "overwrite": false, "optional": false }
   ]
 }
 ```
+
+`root` is `config` (relative to `config/`, the default) or `game` (relative to the game root);
+`optional` defaults to false and requires `overwrite` to be false.
 
 Requires Python 3.11+ to run the tool locally; no third-party packages.
