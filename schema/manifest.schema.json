@@ -59,9 +59,19 @@
         "required": ["path", "url", "sha512", "size", "overwrite"],
         "properties": {
           "path": {
-            "description": "Path relative to the Minecraft config/ folder.",
+            "description": "Path relative to the Minecraft config/ folder, or to the game root when root is \"game\".",
             "type": "string",
             "pattern": "^(?!/)(?!.*\\.\\.).+$"
+          },
+          "root": {
+            "description": "Where path is relative to: the Minecraft config/ folder (default) or the game root.",
+            "enum": ["config", "game"],
+            "default": "config"
+          },
+          "optional": {
+            "description": "true: the player chooses whether to install it. overwrite must be false.",
+            "type": "boolean",
+            "default": false
           },
           "url": { "$ref": "#/definitions/url" },
           "sha512": { "$ref": "#/definitions/sha512" },
