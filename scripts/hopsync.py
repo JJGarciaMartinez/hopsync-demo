@@ -39,6 +39,10 @@ PACK_FILE = ROOT / "hopsync.toml"
 MANIFEST_FILE = ROOT / "manifest.json"
 LOCAL_MODS_DIR = ROOT / "local-mods"
 CONFIGS_DIR = ROOT / "configs"
+GAME_FILES_DIR = ROOT / "game-files"
+GAME_FILES_ALLOWED = {"options.txt", "optionsshaders.txt"}
+FORBIDDEN_SUFFIXES = {".jar", ".exe", ".dll", ".so", ".dylib", ".sh", ".bat"}
+MAX_FILE_SIZE = 5 * 1024 * 1024
 
 MANIFEST_FORMAT = 2
 DEFAULT_RELEASE_TAG = "hopsync"
@@ -182,6 +186,10 @@ class Pack:
     @property
     def overwrite_configs(self) -> set[str]:
         return set(self.data.get("configs", {}).get("overwrite", []))
+
+    @property
+    def optional_configs(self) -> set[str]:
+        return set(self.data.get("configs", {}).get("optional", []))
 
     @property
     def hosting(self) -> dict:
@@ -362,22 +370,66 @@ def collect_local_mods(api: Modrinth, base_url: str, hosted: list[HostedFile]) -
     return entries, {v["project_id"] for v in on_modrinth.values()}
 
 
+def unit_of(rel: str) -> str:
+    """Rule unit of a file under configs/: 'jei/' for anything inside a top-level folder, else the file name."""
+    head, sep, _ = rel.partition("/")
+    return head + "/" if sep else head
+
+
+def scan_folder(base: Path, label: str, errors: list[str]) -> dict[str, Path]:
+    """Files under base keyed by posix relative path, with the safety checks shared by both folders."""
+    found: dict[str, Path] = {}
+    if not base.exists():
+        return found
+    for path in sorted(base.rglob("*")):
+        if path.is_dir() and not path.is_symlink():
+            continue
+        rel = path.relative_to(base).as_posix()
+        if path.is_symlink() or not path.is_file():
+            errors.append(f"{label}/{rel} is not a regular file")
+        elif "\\" in rel or ".." in rel.split("/"):
+            errors.append(f"{label}/{rel} has an unsafe path")
+        elif path.suffix.lower() in FORBIDDEN_SUFFIXES:
+            errors.append(f"{label}/{rel} is an executable or jar; mods go in local-mods/")
+        elif path.stat().st_size > MAX_FILE_SIZE:
+            errors.append(f"{label}/{rel} is over {MAX_FILE_SIZE // (1024 * 1024)} MB")
+        else:
+            found[rel] = path
+    return found
+
+
 def collect_configs(pack: Pack, base_url: str, hosted: list[HostedFile], errors: list[str]) -> list[dict]:
-    files = sorted(p for p in CONFIGS_DIR.rglob("*") if p.is_file()) if CONFIGS_DIR.exists() else []
-    relative = {p.relative_to(CONFIGS_DIR).as_posix(): p for p in files}
-    for missing in pack.overwrite_configs - relative.keys():
-        errors.append(f"[configs] overwrite lists '{missing}', which is not in configs/")
+    relative = scan_folder(CONFIGS_DIR, "configs", errors)
+    units = {unit_of(rel) for rel in relative}
+    overwrite, optional = pack.overwrite_configs, pack.optional_configs
+    for key, listed in (("overwrite", overwrite), ("optional", optional)):
+        for missing in sorted(listed - units):
+            errors.append(f"[configs] {key} lists '{missing}', which is not a file or top-level folder (written 'name/') in configs/")
+    for both in sorted(overwrite & optional):
+        errors.append(f"[configs] '{both}' is in both overwrite and optional")
+
+    game = scan_folder(GAME_FILES_DIR, "game-files", errors)
+    for rel in sorted(game):
+        if rel not in GAME_FILES_ALLOWED:
+            errors.append(f"game-files/{rel} is not allowed; only {', '.join(sorted(GAME_FILES_ALLOWED))}")
+
     entries = []
-    for rel, path in relative.items():
+    sources = [("config", rel, path, rel) for rel, path in relative.items()]
+    sources += [("game", rel, path, f"game-files/{rel}") for rel, path in game.items() if rel in GAME_FILES_ALLOWED]
+    for root, rel, path, asset_key in sources:
         sha = sha512_of(path)
-        asset = safe_asset_name(sha, rel)
+        asset = safe_asset_name(sha, asset_key)
         hosted.append(HostedFile(path, asset))
+        unit = unit_of(rel)
+        is_optional = root == "game" or unit in optional
         entries.append({
             "path": rel,
+            "root": root,
             "url": f"{base_url}/{asset}",
             "sha512": sha,
             "size": path.stat().st_size,
-            "overwrite": rel in pack.overwrite_configs,
+            "overwrite": root == "config" and not is_optional and unit in overwrite,
+            "optional": is_optional,
         })
     return entries
 
@@ -577,8 +629,13 @@ def cmd_import(args) -> int:
         '# server_ip = "play.example.net"\n\n'
         "[configs]\n"
         "# Files under configs/ are installed only if the player does not have them yet.\n"
-        "# List here the ones the server must enforce (relative to configs/).\n"
-        "overwrite = []\n\n"
+        "# Rules list units relative to configs/: a top-level folder with a trailing slash\n"
+        '# ("jei/", every file under it) or a file directly in configs/ ("sodium-options.json").\n'
+        "# overwrite: always replace the player's copy (the server enforces it).\n"
+        "# optional: the player chooses in HopSync whether to install it.\n"
+        "# A unit cannot be in both lists. Files in game-files/ are always optional.\n"
+        "overwrite = []\n"
+        "optional = []\n\n"
         "# Mods hosted on Modrinth. Jars that are not on Modrinth go into local-mods/.\n"
     )
     PACK_FILE.write_text(header + "".join(blocks), encoding="utf-8")
